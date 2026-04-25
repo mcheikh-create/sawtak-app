@@ -5,3 +5,5 @@ uploads/
 *.wav
 *.mp3
 /tmp/
+*.db-shm
+*.db-wal

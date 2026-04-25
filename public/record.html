@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>سجل صوتك — صوتك</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  :root { --gold: #d4a843; --bg: #0d0d0d; --card: #1a1a1a; --text: #f0f0f0; --muted: #888; --red: #e53935; --green: #43a047; }
+  body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', Tahoma, Arial, sans-serif; min-height: 100vh; display: flex; flex-direction: column; align-items: center; }
+  nav { width: 100%; display: flex; justify-content: space-between; align-items: center; padding: 1rem 2rem; border-bottom: 1px solid #222; }
+  .logo { color: var(--gold); font-size: 1.4rem; font-weight: bold; text-decoration: none; }
+  h1 { text-align: center; margin: 2rem 0 1rem; font-size: 1.6rem; color: var(--gold); }
+  .card { background: var(--card); border-radius: 20px; padding: 2.5rem; max-width: 600px; width: 90%; margin: 1rem auto; }
+  .domain-badge { display: inline-block; background: #2a2a2a; border: 1px solid #444; border-radius: 20px; padding: 0.3rem 1rem; font-size: 0.85rem; color: var(--gold); margin-bottom: 1.5rem; }
+  .prompt-text { font-size: 1.6rem; text-align: center; line-height: 1.8; color: var(--text); min-height: 80px; margin-bottom: 2rem; }
+  .record-area { display: flex; flex-direction: column; align-items: center; gap: 1.5rem; }
+  #record-btn { width: 100px; height: 100px; border-radius: 50%; border: none; cursor: pointer; font-size: 2.5rem; background: var(--red); color: #fff; transition: all 0.2s; box-shadow: 0 0 30px rgba(229,57,53,0.3); display: flex; align-items: center; justify-content: center; }
+  #record-btn.recording { animation: pulse 1s infinite; background: #c62828; }
+  #record-btn.done { background: var(--green); }
+  @keyframes pulse { 0%,100% { box-shadow: 0 0 20px rgba(229,57,53,0.4); } 50% { box-shadow: 0 0 50px rgba(229,57,53,0.8); } }
+  #timer { font-size: 2rem; font-weight: bold; color: var(--gold); min-width: 80px; text-align: center; }
+  #status { color: var(--muted); font-size: 0.95rem; }
+  audio { width: 100%; border-radius: 10px; margin: 0.5rem 0; }
+  textarea { width: 100%; background: #111; border: 1px solid #333; border-radius: 10px; padding: 1rem; color: var(--text); font-size: 1rem; resize: vertical; direction: rtl; font-family: inherit; }
+  textarea:focus { outline: none; border-color: var(--gold); }
+  .btn { background: var(--gold); color: #000; border: none; border-radius: 10px; padding: 0.9rem 2rem; font-size: 1rem; font-weight: bold; cursor: pointer; width: 100%; margin-top: 1rem; transition: all 0.2s; }
+  .btn:hover { background: #e8c057; }
+  .btn:disabled { background: #444; color: #666; cursor: not-allowed; }
+  .btn-secondary { background: transparent; color: var(--muted); border: 1px solid #333; border-radius: 10px; padding: 0.7rem 1.5rem; cursor: pointer; font-size: 0.9rem; transition: all 0.2s; }
+  .btn-secondary:hover { border-color: var(--gold); color: var(--gold); }
+  .toast { position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%); background: var(--green); color: #fff; padding: 1rem 2rem; border-radius: 10px; font-size: 1rem; display: none; z-index: 100; }
+  .offline-badge { background: #333; color: var(--gold); padding: 0.3rem 0.7rem; border-radius: 10px; font-size: 0.8rem; display: none; }
+</style>
+</head>
+<body>
+<nav>
+  <a href="/" class="logo">← صوتك</a>
+  <span class="offline-badge" id="offline-badge">📴 وضع عدم الاتصال</span>
+</nav>
+
+<h1>🎙️ سجل صوتك</h1>
+
+<div class="card">
+  <div class="domain-badge" id="domain-badge">تحميل...</div>
+  <div class="prompt-text" id="prompt-text">...</div>
+
+  <div class="record-area">
+    <div id="timer">0:00</div>
+    <button id="record-btn" onclick="toggleRecord()">🎙️</button>
+    <div id="status">اضغط للتسجيل</div>
+    <audio id="playback" controls style="display:none"></audio>
+  </div>
+
+  <div style="margin-top:1.5rem">
+    <label style="color:var(--muted);font-size:0.9rem;display:block;margin-bottom:0.5rem">ما قلته (اختياري — يساعد في النسخ):</label>
+    <textarea id="transcription" rows="3" placeholder="اكتب ما قلته بالحسانية..."></textarea>
+  </div>
+
+  <button class="btn" id="submit-btn" onclick="submitRecording()" disabled>إرسال التسجيل</button>
+  <button class="btn-secondary" onclick="nextPrompt()" style="width:100%;margin-top:0.8rem;text-align:center">السؤال التالي ←</button>
+</div>
+
+<div class="toast" id="toast">شكراً على مساهمتك! 🎉</div>
+
+<script>
+let mediaRecorder, audioChunks = [], audioBlob, timerInterval, seconds = 0;
+let currentPrompt = null;
+let pendingOffline = JSON.parse(localStorage.getItem('sawtak_pending') || '[]');
+
+const DOMAIN_LABELS = { daily_life:'الحياة اليومية', market:'السوق', culture:'الثقافة', religion:'الدين', technology:'التقنية', general:'عام' };
+
+window.addEventListener('online', syncOffline);
+window.addEventListener('offline', () => { document.getElementById('offline-badge').style.display = 'inline'; });
+
+async function loadPrompt() {
+  try {
+    const r = await fetch('/api/prompts/random');
+    currentPrompt = await r.json();
+    document.getElementById('prompt-text').textContent = currentPrompt.arabic_text;
+    document.getElementById('domain-badge').textContent = DOMAIN_LABELS[currentPrompt.domain] || currentPrompt.domain;
+  } catch {
+    document.getElementById('prompt-text').textContent = 'تكلم بالحسانية بشكل حر';
+    document.getElementById('domain-badge').textContent = 'عام';
+  }
+}
+
+function toggleRecord() {
+  if (!mediaRecorder || mediaRecorder.state === 'inactive') startRecording();
+  else stopRecording();
+}
+
+async function startRecording() {
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    audioChunks = [];
+    mediaRecorder = new MediaRecorder(stream);
+    mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+    mediaRecorder.onstop = () => {
+      audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+      const url = URL.createObjectURL(audioBlob);
+      const audio = document.getElementById('playback');
+      audio.src = url;
+      audio.style.display = 'block';
+      document.getElementById('submit-btn').disabled = false;
+      document.getElementById('record-btn').textContent = '🔁';
+      document.getElementById('record-btn').className = 'done';
+      document.getElementById('status').textContent = 'تم التسجيل — استمع ثم أرسل';
+    };
+    mediaRecorder.start();
+    document.getElementById('record-btn').className = 'recording';
+    document.getElementById('record-btn').textContent = '⏹';
+    document.getElementById('status').textContent = 'جارٍ التسجيل...';
+    seconds = 0;
+    timerInterval = setInterval(() => {
+      seconds++;
+      const m = Math.floor(seconds/60), s = seconds%60;
+      document.getElementById('timer').textContent = `${m}:${s.toString().padStart(2,'0')}`;
+      if (seconds >= 60) stopRecording();
+    }, 1000);
+  } catch (e) {
+    alert('لا يمكن الوصول للميكروفون. تأكد من منح الإذن.');
+  }
+}
+
+function stopRecording() {
+  clearInterval(timerInterval);
+  if (mediaRecorder && mediaRecorder.state !== 'inactive') mediaRecorder.stop();
+  mediaRecorder.stream.getTracks().forEach(t => t.stop());
+}
+
+async function submitRecording() {
+  if (!audioBlob) return;
+  const transcription = document.getElementById('transcription').value;
+  const entry = {
+    blob: audioBlob,
+    duration: seconds,
+    domain: currentPrompt?.domain || 'general',
+    prompt_text: currentPrompt?.arabic_text || '',
+    transcription,
+  };
+
+  if (!navigator.onLine) {
+    pendingOffline.push({ ...entry, blob: null, timestamp: Date.now() });
+    localStorage.setItem('sawtak_pending', JSON.stringify(pendingOffline));
+    showToast('تم الحفظ محلياً — سيُرسل عند الاتصال');
+    resetForm();
+    return;
+  }
+
+  const fd = new FormData();
+  fd.append('audio', audioBlob, 'recording.webm');
+  fd.append('duration', seconds);
+  fd.append('domain', entry.domain);
+  fd.append('prompt_text', entry.prompt_text);
+  fd.append('transcription', transcription);
+
+  try {
+    document.getElementById('submit-btn').disabled = true;
+    document.getElementById('submit-btn').textContent = 'جارٍ الإرسال...';
+    await fetch('/api/contribute/voice', { method: 'POST', body: fd });
+    showToast('شكراً على مساهمتك! 🎉');
+    resetForm();
+  } catch {
+    showToast('خطأ في الإرسال — تم الحفظ محلياً');
+  }
+}
+
+async function syncOffline() {
+  document.getElementById('offline-badge').style.display = 'none';
+  if (!pendingOffline.length) return;
+  const toSync = [...pendingOffline];
+  pendingOffline = [];
+  localStorage.setItem('sawtak_pending', '[]');
+  for (const item of toSync) {
+    try {
+      const fd = new FormData();
+      fd.append('duration', item.duration);
+      fd.append('domain', item.domain);
+      fd.append('prompt_text', item.prompt_text || '');
+      fd.append('transcription', item.transcription || '');
+      await fetch('/api/contribute/text', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ text: item.transcription || '(audio)', domain: item.domain, prompt_text: item.prompt_text }) });
+    } catch {}
+  }
+}
+
+function resetForm() {
+  audioBlob = null; seconds = 0;
+  document.getElementById('timer').textContent = '0:00';
+  document.getElementById('playback').style.display = 'none';
+  document.getElementById('transcription').value = '';
+  document.getElementById('record-btn').className = '';
+  document.getElementById('record-btn').textContent = '🎙️';
+  document.getElementById('status').textContent = 'اضغط للتسجيل';
+  document.getElementById('submit-btn').disabled = true;
+  document.getElementById('submit-btn').textContent = 'إرسال التسجيل';
+}
+
+function nextPrompt() { resetForm(); loadPrompt(); }
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.display = 'block';
+  setTimeout(() => { t.style.display = 'none'; loadPrompt(); resetForm(); }, 2500);
+}
+
+loadPrompt();
+</script>
+</body>
+</html>

@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>احك قصتك — صوتك</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  :root { --gold: #d4a843; --bg: #0d0d0d; --card: #1a1a1a; --text: #f0f0f0; --muted: #888; --green: #43a047; }
+  body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', Tahoma, Arial, sans-serif; min-height: 100vh; }
+  nav { display: flex; justify-content: space-between; align-items: center; padding: 1rem 2rem; border-bottom: 1px solid #222; }
+  .logo { color: var(--gold); font-size: 1.4rem; font-weight: bold; text-decoration: none; }
+  h1 { text-align: center; color: var(--gold); margin: 1.5rem 0 0.3rem; font-size: 1.6rem; }
+  .sub { text-align: center; color: var(--muted); margin-bottom: 1.5rem; font-size: 0.95rem; }
+  .card { background: var(--card); border-radius: 20px; padding: 2rem; max-width: 660px; margin: 0 auto 2rem; width: 92%; }
+  .type-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 0.8rem; margin-bottom: 1.5rem; }
+  .type-btn { background: #111; border: 2px solid #333; border-radius: 12px; padding: 1rem; text-align: center; cursor: pointer; transition: all 0.2s; }
+  .type-btn.selected { border-color: var(--gold); background: rgba(212,168,67,0.1); }
+  .type-btn .emoji { font-size: 1.8rem; display: block; }
+  .type-btn .label { font-size: 0.85rem; color: var(--muted); margin-top: 0.3rem; }
+  label { display: block; color: var(--muted); font-size: 0.9rem; margin: 1rem 0 0.5rem; }
+  textarea { width: 100%; background: #111; border: 1px solid #333; border-radius: 12px; padding: 1rem; color: var(--text); font-size: 1.05rem; resize: vertical; direction: rtl; font-family: inherit; line-height: 1.8; }
+  textarea:focus { outline: none; border-color: var(--gold); }
+  .char-info { text-align: left; color: var(--muted); font-size: 0.85rem; margin-top: 0.4rem; }
+  .char-info.ok { color: var(--green); }
+  .hassan-keys { display: flex; gap: 0.5rem; flex-wrap: wrap; margin: 0.8rem 0; }
+  .hkey { background: #2a2a2a; border: 1px solid #444; border-radius: 8px; padding: 0.4rem 0.8rem; cursor: pointer; color: var(--gold); font-size: 1.2rem; }
+  .hkey:hover { background: var(--gold); color: #000; }
+  input[type=text] { width: 100%; background: #111; border: 1px solid #333; border-radius: 10px; padding: 0.7rem 1rem; color: var(--text); font-size: 0.95rem; }
+  input[type=text]:focus { outline: none; border-color: var(--gold); }
+  .btn { background: var(--gold); color: #000; border: none; border-radius: 10px; padding: 0.9rem 2rem; font-size: 1rem; font-weight: bold; cursor: pointer; width: 100%; margin-top: 1rem; }
+  .btn:hover { background: #e8c057; }
+  .btn:disabled { background: #333; color: #666; cursor: not-allowed; }
+  .toast { position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%); background: var(--green); color: #fff; padding: 1rem 2rem; border-radius: 10px; display: none; z-index: 100; }
+</style>
+</head>
+<body>
+<nav>
+  <a href="/" class="logo">← صوتك</a>
+</nav>
+
+<h1>📖 احك قصتك</h1>
+<p class="sub">شارك قصة أو مثل أو شعر بالحسانية</p>
+
+<div class="card">
+  <label>نوع المحتوى:</label>
+  <div class="type-grid" id="type-grid">
+    <div class="type-btn selected" data-type="folk_story" onclick="selectType(this)">
+      <span class="emoji">📖</span>
+      <div class="label">حكاية شعبية</div>
+    </div>
+    <div class="type-btn" data-type="proverb" onclick="selectType(this)">
+      <span class="emoji">🌟</span>
+      <div class="label">مثل حساني</div>
+    </div>
+    <div class="type-btn" data-type="conversation" onclick="selectType(this)">
+      <span class="emoji">💬</span>
+      <div class="label">محادثة يومية</div>
+    </div>
+    <div class="type-btn" data-type="poetry" onclick="selectType(this)">
+      <span class="emoji">🎵</span>
+      <div class="label">شعر / أغنية</div>
+    </div>
+    <div class="type-btn" data-type="news" onclick="selectType(this)">
+      <span class="emoji">📰</span>
+      <div class="label">خبر / حدث</div>
+    </div>
+  </div>
+
+  <label>الحروف الخاصة بالحسانية:</label>
+  <div class="hassan-keys">
+    <button class="hkey" onclick="insertChar('گ')">گ</button>
+    <button class="hkey" onclick="insertChar('ڤ')">ڤ</button>
+    <button class="hkey" onclick="insertChar('ژ')">ژ</button>
+    <button class="hkey" onclick="insertChar('واش ')">واش</button>
+    <button class="hkey" onclick="insertChar('شكون ')">شكون</button>
+    <button class="hkey" onclick="insertChar('مزيان ')">مزيان</button>
+  </div>
+
+  <label>القصة أو المحتوى: <span style="color:var(--gold)">*</span></label>
+  <textarea id="story-text" rows="8" placeholder="احك هنا بالحسانية..." oninput="updateCount()"></textarea>
+  <div class="char-info" id="char-info">0 / 2000 — 100 حرف على الأقل للقصص</div>
+
+  <label>اسمك (اختياري):</label>
+  <input type="text" id="author-name" placeholder="اسمك أو لقبك">
+
+  <button class="btn" id="submit-btn" onclick="submitStory()" disabled>إرسال القصة ✓</button>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+let selectedType = 'folk_story';
+const TOKEN = localStorage.getItem('sawtak_token');
+
+function selectType(el) {
+  document.querySelectorAll('.type-btn').forEach(b => b.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedType = el.dataset.type;
+}
+
+function updateCount() {
+  const len = document.getElementById('story-text').value.trim().length;
+  const el = document.getElementById('char-info');
+  el.textContent = `${len} / 2000`;
+  if (len >= 100) el.className = 'char-info ok';
+  else { el.className = 'char-info'; el.textContent += ' — 100 حرف على الأقل للقصص'; }
+  document.getElementById('submit-btn').disabled = len < 20;
+}
+
+function insertChar(c) {
+  const ta = document.getElementById('story-text');
+  const s = ta.selectionStart;
+  ta.value = ta.value.slice(0, s) + c + ta.value.slice(ta.selectionEnd);
+  ta.selectionStart = ta.selectionEnd = s + c.length;
+  ta.focus(); updateCount();
+}
+
+async function submitStory() {
+  const text = document.getElementById('story-text').value.trim();
+  const author = document.getElementById('author-name').value.trim();
+  if (text.length < 20) return;
+
+  const headers = { 'Content-Type': 'application/json' };
+  if (TOKEN) headers['Authorization'] = `Bearer ${TOKEN}`;
+
+  const url = TOKEN ? '/api/annotator/story' : '/api/contribute/text';
+  const body = TOKEN
+    ? { content_text: text, story_type: selectedType, domain: 'culture' }
+    : { text, domain: 'culture', prompt_text: `قصة: ${selectedType}`, contributor_name: author };
+
+  try {
+    document.getElementById('submit-btn').disabled = true;
+    document.getElementById('submit-btn').textContent = 'جارٍ الإرسال...';
+    const r = await fetch(url, { method: 'POST', headers, body: JSON.stringify(body) });
+    if (!r.ok) throw new Error();
+    showToast('شكراً! قصتك حُفظت 🎉');
+    document.getElementById('story-text').value = '';
+    document.getElementById('author-name').value = '';
+    updateCount();
+  } catch {
+    showToast('خطأ في الإرسال، حاول مجدداً');
+  } finally {
+    document.getElementById('submit-btn').textContent = 'إرسال القصة ✓';
+    document.getElementById('submit-btn').disabled = false;
+  }
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.style.display = 'block';
+  setTimeout(() => t.style.display = 'none', 3000);
+}
+</script>
+</body>
+</html>

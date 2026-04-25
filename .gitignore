@@ -1,0 +1,7 @@
+node_modules/
+sawtak.db
+uploads/
+*.webm
+*.wav
+*.mp3
+/tmp/

@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>صوتك — Sawtak</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  :root { --gold: #d4a843; --bg: #0d0d0d; --card: #1a1a1a; --text: #f0f0f0; --muted: #888; --green: #4caf50; }
+  body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', Tahoma, Arial, sans-serif; min-height: 100vh; }
+  header { display: flex; justify-content: space-between; align-items: center; padding: 1rem 2rem; border-bottom: 1px solid #222; }
+  .logo { font-size: 1.8rem; font-weight: bold; color: var(--gold); letter-spacing: 2px; }
+  .lang-switcher { display: flex; gap: 0.5rem; }
+  .lang-btn { background: #222; border: 1px solid #333; color: var(--muted); padding: 0.3rem 0.8rem; border-radius: 20px; cursor: pointer; font-size: 0.85rem; transition: all 0.2s; }
+  .lang-btn.active { background: var(--gold); color: #000; border-color: var(--gold); }
+  .hero { text-align: center; padding: 4rem 2rem 2rem; }
+  .hero h1 { font-size: clamp(2rem, 6vw, 3.5rem); color: var(--gold); margin-bottom: 0.5rem; }
+  .hero p { font-size: 1.2rem; color: var(--muted); margin-bottom: 1.5rem; max-width: 600px; margin-inline: auto; }
+  .counter-bar { display: flex; justify-content: center; gap: 3rem; margin: 2rem auto; flex-wrap: wrap; }
+  .counter { text-align: center; }
+  .counter .num { font-size: 2.5rem; font-weight: bold; color: var(--gold); }
+  .counter .label { font-size: 0.85rem; color: var(--muted); }
+  .actions { display: flex; justify-content: center; gap: 1.5rem; flex-wrap: wrap; padding: 2rem; }
+  .action-btn { background: var(--card); border: 2px solid #333; border-radius: 16px; padding: 2rem 2.5rem; text-align: center; text-decoration: none; color: var(--text); cursor: pointer; transition: all 0.2s; min-width: 200px; display: block; }
+  .action-btn:hover { border-color: var(--gold); transform: translateY(-4px); box-shadow: 0 8px 30px rgba(212,168,67,0.2); }
+  .action-btn .icon { font-size: 3rem; margin-bottom: 1rem; display: block; }
+  .action-btn .title { font-size: 1.2rem; font-weight: bold; margin-bottom: 0.3rem; }
+  .action-btn .sub { font-size: 0.85rem; color: var(--muted); }
+  .mission { background: var(--card); margin: 2rem auto; max-width: 700px; padding: 2rem; border-radius: 16px; text-align: center; }
+  .mission h2 { color: var(--gold); margin-bottom: 1rem; }
+  .mission p { color: var(--muted); line-height: 1.8; }
+  footer { text-align: center; padding: 2rem; color: var(--muted); font-size: 0.85rem; border-top: 1px solid #1a1a1a; }
+  footer a { color: var(--gold); text-decoration: none; }
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">صوتك</div>
+  <div class="lang-switcher">
+    <button class="lang-btn active" onclick="setLang('ar')">العربية</button>
+    <button class="lang-btn" onclick="setLang('fr')">Français</button>
+    <button class="lang-btn" onclick="setLang('en')">English</button>
+  </div>
+</header>
+
+<div class="hero">
+  <h1 id="hero-title">صوتك</h1>
+  <p id="hero-sub">ساهم في حفظ اللهجة الحسانية الموريتانية للأجيال القادمة</p>
+  <div class="counter-bar">
+    <div class="counter"><div class="num" id="cnt-contribs">—</div><div class="label" id="lbl-contribs">مساهمة</div></div>
+    <div class="counter"><div class="num" id="cnt-people">—</div><div class="label" id="lbl-people">مساهم</div></div>
+    <div class="counter"><div class="num" id="cnt-hours">—</div><div class="label" id="lbl-hours">ساعة صوتية</div></div>
+  </div>
+</div>
+
+<div class="actions">
+  <a href="record.html" class="action-btn">
+    <span class="icon">🎙️</span>
+    <div class="title" id="btn-record">سجل صوتك</div>
+    <div class="sub" id="sub-record">تحدث بالحسانية</div>
+  </a>
+  <a href="write.html" class="action-btn">
+    <span class="icon">✍️</span>
+    <div class="title" id="btn-write">اكتب بالحسانية</div>
+    <div class="sub" id="sub-write">أجب على السؤال كتابةً</div>
+  </a>
+  <a href="validate.html" class="action-btn">
+    <span class="icon">👂</span>
+    <div class="title" id="btn-validate">تحقق من التسجيلات</div>
+    <div class="sub" id="sub-validate">ساعد في مراجعة الصوتيات</div>
+  </a>
+  <a href="story.html" class="action-btn">
+    <span class="icon">📖</span>
+    <div class="title" id="btn-story">احك قصتك</div>
+    <div class="sub" id="sub-story">قصص وأمثال حسانية</div>
+  </a>
+</div>
+
+<div class="mission">
+  <h2 id="mission-title">مهمتنا</h2>
+  <p id="mission-text">نبني أول قاعدة بيانات صوتية ونصية للهجة الحسانية الموريتانية. كل كلمة تكتبها، كل جملة تقولها، تُحفظ للأبد وتُدرَّب عليها نماذج الذكاء الاصطناعي ليفهم الحسانية ويتكلم بها.</p>
+</div>
+
+<footer>
+  <p><a href="/annotator/login.html" id="annotator-link">دخول المُدوِّنين</a> &nbsp;|&nbsp; <a href="/admin/dashboard.html">لوحة الإدارة</a></p>
+  <p style="margin-top:0.5rem">Zidnni — حفظ العقل &copy; 2025</p>
+</footer>
+
+<script>
+const T = {
+  ar: { title:'صوتك', sub:'ساهم في حفظ اللهجة الحسانية الموريتانية للأجيال القادمة', contribs:'مساهمة', people:'مساهم', hours:'ساعة صوتية', record:'سجل صوتك', subRecord:'تحدث بالحسانية', write:'اكتب بالحسانية', subWrite:'أجب على السؤال كتابةً', validate:'تحقق من التسجيلات', subValidate:'ساعد في مراجعة الصوتيات', story:'احك قصتك', subStory:'قصص وأمثال حسانية', missionTitle:'مهمتنا', missionText:'نبني أول قاعدة بيانات صوتية ونصية للهجة الحسانية الموريتانية. كل كلمة تكتبها، كل جملة تقولها، تُحفظ للأبد وتُدرَّب عليها نماذج الذكاء الاصطناعي ليفهم الحسانية ويتكلم بها.', annotatorLink:'دخول المُدوِّنين' },
+  fr: { title:'Sawtak', sub:'Contribuez à la préservation du dialecte hassaniya mauritanien', contribs:'contributions', people:'contributeurs', hours:'heures audio', record:'Enregistrer', subRecord:'Parlez en hassaniya', write:'Écrire', subWrite:'Répondez par écrit', validate:'Valider', subValidate:'Vérifiez les enregistrements', story:'Raconter', subStory:'Histoires et proverbes', missionTitle:'Notre Mission', missionText:"Nous construisons la première base de données vocale et textuelle du dialecte hassaniya mauritanien. Chaque mot que vous écrivez est conservé pour toujours.", annotatorLink:'Connexion Annotateurs' },
+  en: { title:'Sawtak', sub:'Help preserve the Mauritanian Hassaniya dialect for future generations', contribs:'contributions', people:'contributors', hours:'voice hours', record:'Record Voice', subRecord:'Speak in Hassaniya', write:'Write Text', subWrite:'Answer in writing', validate:'Validate', subValidate:'Review recordings', story:'Tell a Story', subStory:'Stories & proverbs', missionTitle:'Our Mission', missionText:'We are building the first voice and text database for the Mauritanian Hassaniya dialect. Every word you write or say is preserved forever to train AI models.', annotatorLink:'Annotator Login' }
+};
+
+let lang = 'ar';
+function setLang(l) {
+  lang = l;
+  document.documentElement.lang = l;
+  document.documentElement.dir = l === 'ar' ? 'rtl' : 'ltr';
+  document.querySelectorAll('.lang-btn').forEach((b,i) => b.classList.toggle('active', ['ar','fr','en'][i] === l));
+  const t = T[l];
+  document.getElementById('hero-title').textContent = t.title;
+  document.getElementById('hero-sub').textContent = t.sub;
+  document.getElementById('lbl-contribs').textContent = t.contribs;
+  document.getElementById('lbl-people').textContent = t.people;
+  document.getElementById('lbl-hours').textContent = t.hours;
+  document.getElementById('btn-record').textContent = t.record;
+  document.getElementById('sub-record').textContent = t.subRecord;
+  document.getElementById('btn-write').textContent = t.write;
+  document.getElementById('sub-write').textContent = t.subWrite;
+  document.getElementById('btn-validate').textContent = t.validate;
+  document.getElementById('sub-validate').textContent = t.subValidate;
+  document.getElementById('btn-story').textContent = t.story;
+  document.getElementById('sub-story').textContent = t.subStory;
+  document.getElementById('mission-title').textContent = t.missionTitle;
+  document.getElementById('mission-text').textContent = t.missionText;
+  document.getElementById('annotator-link').textContent = t.annotatorLink;
+}
+
+async function loadStats() {
+  try {
+    const r = await fetch('/api/stats');
+    const d = await r.json();
+    document.getElementById('cnt-contribs').textContent = d.total_contributions.toLocaleString();
+    document.getElementById('cnt-people').textContent = d.total_contributors.toLocaleString();
+    document.getElementById('cnt-hours').textContent = d.total_voice_hours;
+  } catch {}
+}
+loadStats();
+</script>
+</body>
+</html>

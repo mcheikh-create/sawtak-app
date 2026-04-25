@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>لوحة الإدارة — صوتك</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  :root { --gold: #d4a843; --bg: #0d0d0d; --card: #1a1a1a; --text: #f0f0f0; --muted: #888; --green: #43a047; --red: #e53935; }
+  body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', Tahoma, Arial, sans-serif; min-height: 100vh; }
+  header { display: flex; justify-content: space-between; align-items: center; padding: 1rem 2rem; border-bottom: 1px solid #222; }
+  .logo { color: var(--gold); font-size: 1.4rem; font-weight: bold; }
+  .logout { color: var(--muted); cursor: pointer; background: none; border: none; font-size: 0.85rem; }
+  .logout:hover { color: var(--gold); }
+  main { max-width: 1100px; margin: 0 auto; padding: 1.5rem; }
+  .page-title { color: var(--gold); font-size: 1.5rem; margin-bottom: 1.5rem; }
+  .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
+  .stat-card { background: var(--card); border-radius: 14px; padding: 1.5rem; text-align: center; }
+  .stat-num { font-size: 2rem; font-weight: bold; color: var(--gold); }
+  .stat-label { color: var(--muted); font-size: 0.82rem; margin-top: 0.3rem; }
+  .section { background: var(--card); border-radius: 16px; padding: 1.5rem; margin-bottom: 1.5rem; }
+  h2 { color: var(--gold); margin-bottom: 1rem; font-size: 1.1rem; }
+  table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+  th { text-align: right; color: var(--muted); padding: 0.6rem; border-bottom: 1px solid #222; }
+  td { padding: 0.6rem; border-bottom: 1px solid #1a1a1a; }
+  .btn { background: var(--gold); color: #000; border: none; border-radius: 8px; padding: 0.6rem 1.2rem; font-size: 0.9rem; font-weight: bold; cursor: pointer; text-decoration: none; display: inline-block; transition: all 0.2s; }
+  .btn:hover { background: #e8c057; }
+  .btn-sm { padding: 0.4rem 0.8rem; font-size: 0.8rem; }
+  .btn-outline { background: transparent; color: var(--gold); border: 1px solid var(--gold); }
+  .btn-red { background: transparent; color: var(--red); border: 1px solid var(--red); }
+  .export-btns { display: flex; gap: 0.8rem; flex-wrap: wrap; margin-bottom: 1rem; }
+  .chart-bar-wrap { display: flex; align-items: flex-end; gap: 2px; height: 80px; overflow-x: auto; padding: 0.5rem 0; }
+  .chart-col { display: flex; flex-direction: column; align-items: center; min-width: 20px; }
+  .chart-bar { background: var(--gold); border-radius: 3px 3px 0 0; width: 18px; min-height: 2px; }
+  .chart-label { color: var(--muted); font-size: 0.6rem; margin-top: 2px; transform: rotate(-45deg); transform-origin: top right; }
+  input, select { background: #111; border: 1px solid #333; border-radius: 8px; padding: 0.6rem 1rem; color: var(--text); font-size: 0.9rem; }
+  input:focus, select:focus { outline: none; border-color: var(--gold); }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem; margin-bottom: 0.8rem; }
+  .form-row input, .form-row select { width: 100%; }
+  label { display: block; color: var(--muted); font-size: 0.82rem; margin-bottom: 0.3rem; }
+  .file-upload { border: 2px dashed #333; border-radius: 12px; padding: 1.5rem; text-align: center; cursor: pointer; }
+  .file-upload:hover { border-color: var(--gold); }
+  .import-result { background: #111; border-radius: 8px; padding: 1rem; margin-top: 0.8rem; color: var(--green); display: none; font-size: 0.9rem; }
+  .status-badge { display: inline-block; padding: 0.2rem 0.6rem; border-radius: 20px; font-size: 0.78rem; }
+  .s-validated { background: rgba(67,160,71,0.2); color: var(--green); }
+  .s-pending { background: #333; color: #aaa; }
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">صوتك — الإدارة</div>
+  <button class="logout" onclick="logout()">خروج</button>
+</header>
+
+<main>
+  <div class="page-title">لوحة الإدارة</div>
+
+  <div class="stats-grid">
+    <div class="stat-card"><div class="stat-num" id="s-total">—</div><div class="stat-label">إجمالي المساهمات</div></div>
+    <div class="stat-card"><div class="stat-num" id="s-validated">—</div><div class="stat-label">تم التحقق منها</div></div>
+    <div class="stat-card"><div class="stat-num" id="s-pending">—</div><div class="stat-label">في الانتظار</div></div>
+    <div class="stat-card"><div class="stat-num" id="s-contributors">—</div><div class="stat-label">مساهمو المجتمع</div></div>
+    <div class="stat-card"><div class="stat-num" id="s-annotators">—</div><div class="stat-label">المُدوِّنون</div></div>
+    <div class="stat-card"><div class="stat-num" id="s-hours">—</div><div class="stat-label">ساعات صوتية</div></div>
+  </div>
+
+  <!-- Chart -->
+  <div class="section">
+    <h2>المساهمات (آخر 30 يوم)</h2>
+    <div class="chart-bar-wrap" id="chart"></div>
+  </div>
+
+  <!-- Annotator performance -->
+  <div class="section">
+    <h2>أداء المُدوِّنين</h2>
+    <table>
+      <thead><tr><th>الاسم</th><th>اليوم</th><th>الأسبوع</th><th>الإجمالي</th><th>الهدف اليومي</th><th>المستحقات</th></tr></thead>
+      <tbody id="annotator-table"><tr><td colspan="6" style="color:var(--muted);text-align:center">جارٍ التحميل...</td></tr></tbody>
+    </table>
+  </div>
+
+  <!-- Export -->
+  <div class="section">
+    <h2>تصدير قاعدة البيانات</h2>
+    <div class="export-btns">
+      <a href="/api/admin/exports?format=hdrp" class="btn" id="btn-hdrp">تصدير HDRP JSONL</a>
+      <a href="/api/admin/exports?format=sft" class="btn btn-outline">تصدير SFT</a>
+      <a href="/api/admin/exports?format=dapt" class="btn btn-outline">تصدير DAPT</a>
+      <a href="/api/admin/payments/export-csv" class="btn btn-outline">تصدير كشف الرواتب CSV</a>
+    </div>
+    <div style="color:var(--muted);font-size:0.85rem" id="export-count">...</div>
+  </div>
+
+  <!-- Import WhatsApp -->
+  <div class="section">
+    <h2>استيراد واتساب</h2>
+    <p style="color:var(--muted);font-size:0.85rem;margin-bottom:1rem">ارفع ملف تصدير محادثة واتساب (.txt)</p>
+    <div class="file-upload" onclick="document.getElementById('wa-file').click()">
+      <div style="font-size:2rem">📱</div>
+      <div>انقر لاختيار ملف .txt</div>
+      <div style="color:var(--muted);font-size:0.8rem" id="wa-file-name">لم يُختر ملف</div>
+    </div>
+    <input type="file" id="wa-file" accept=".txt" style="display:none" onchange="updateFileName('wa-file','wa-file-name')">
+    <button class="btn" style="margin-top:0.8rem" onclick="importWhatsApp()">استيراد</button>
+    <div class="import-result" id="wa-result"></div>
+  </div>
+
+  <!-- Import Facebook -->
+  <div class="section">
+    <h2>استيراد فيسبوك</h2>
+    <p style="color:var(--muted);font-size:0.85rem;margin-bottom:1rem">ارفع ملف تصدير بيانات فيسبوك (.json)</p>
+    <div class="file-upload" onclick="document.getElementById('fb-file').click()">
+      <div style="font-size:2rem">📘</div>
+      <div>انقر لاختيار ملف .json</div>
+      <div style="color:var(--muted);font-size:0.8rem" id="fb-file-name">لم يُختر ملف</div>
+    </div>
+    <input type="file" id="fb-file" accept=".json" style="display:none" onchange="updateFileName('fb-file','fb-file-name')">
+    <button class="btn" style="margin-top:0.8rem" onclick="importFacebook()">استيراد</button>
+    <div class="import-result" id="fb-result"></div>
+  </div>
+
+  <!-- Create Annotator -->
+  <div class="section">
+    <h2>إنشاء حساب مُدوِّن جديد</h2>
+    <div class="form-row">
+      <div><label>الاسم</label><input type="text" id="ann-name" placeholder="اسم المُدوِّن"></div>
+      <div><label>الهاتف</label><input type="text" id="ann-phone" placeholder="+222..."></div>
+    </div>
+    <div class="form-row">
+      <div><label>رمز الدخول PIN (4 أرقام)</label><input type="text" id="ann-pin" maxlength="4" placeholder="1234"></div>
+      <div><label>الهدف اليومي</label><input type="number" id="ann-target" value="20"></div>
+    </div>
+    <div class="form-row">
+      <div><label>سعر المساهمة (MRU)</label><input type="number" id="ann-rate" value="5" step="0.5"></div>
+    </div>
+    <button class="btn" onclick="createAnnotator()">إنشاء الحساب</button>
+    <div id="create-result" style="margin-top:0.8rem;font-size:0.9rem;min-height:1.2rem"></div>
+  </div>
+
+  <!-- Payments -->
+  <div class="section">
+    <h2>المدفوعات المعلقة</h2>
+    <table>
+      <thead><tr><th>المُدوِّن</th><th>الفترة</th><th>المساهمات</th><th>المبلغ</th><th>الحالة</th><th>إجراء</th></tr></thead>
+      <tbody id="payments-table"><tr><td colspan="6" style="color:var(--muted);text-align:center">جارٍ التحميل...</td></tr></tbody>
+    </table>
+  </div>
+</main>
+
+<script>
+const token = localStorage.getItem('sawtak_token');
+const type = localStorage.getItem('sawtak_type');
+if (!token || type !== 'admin') window.location.href = '/annotator/login.html';
+
+const H = { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' };
+
+async function loadDashboard() {
+  try {
+    const [dashR, payR] = await Promise.all([
+      fetch('/api/admin/dashboard', { headers: H }),
+      fetch('/api/admin/payments', { headers: H }),
+    ]);
+    const d = await dashR.json();
+    const p = await payR.json();
+    if (!dashR.ok) { logout(); return; }
+
+    document.getElementById('s-total').textContent = d.total;
+    document.getElementById('s-validated').textContent = d.validated;
+    document.getElementById('s-pending').textContent = d.pending;
+    document.getElementById('s-contributors').textContent = d.contributors;
+    document.getElementById('s-annotators').textContent = d.annotators;
+    document.getElementById('s-hours').textContent = Math.round(d.voice_hours * 10) / 10;
+
+    // Annotators table
+    const atbody = document.getElementById('annotator-table');
+    atbody.innerHTML = d.annotator_stats.length === 0
+      ? '<tr><td colspan="6" style="color:var(--muted);text-align:center">لا يوجد مُدوِّنون بعد</td></tr>'
+      : d.annotator_stats.map(a => `<tr>
+          <td>${a.name}</td>
+          <td>${a.today}</td>
+          <td>${a.week}</td>
+          <td>${a.total_contribs}</td>
+          <td>${a.daily_target}</td>
+          <td>${a.pending_pay} MRU</td>
+        </tr>`).join('');
+
+    // Chart
+    const chart = document.getElementById('chart');
+    const max = Math.max(...d.daily.map(x => x.count), 1);
+    chart.innerHTML = d.daily.map(x => `
+      <div class="chart-col">
+        <div class="chart-bar" style="height:${Math.round(x.count/max*70)}px" title="${x.date}: ${x.count}"></div>
+        <div class="chart-label">${x.date.slice(5)}</div>
+      </div>`).join('');
+
+    document.getElementById('export-count').textContent = `${d.validated} إدخال تم التحقق منه جاهز للتصدير`;
+
+    // Payments
+    const ptbody = document.getElementById('payments-table');
+    const pending = p.filter(x => x.status === 'pending');
+    ptbody.innerHTML = pending.length === 0
+      ? '<tr><td colspan="6" style="color:var(--muted);text-align:center">لا توجد مدفوعات معلقة</td></tr>'
+      : pending.map(x => `<tr>
+          <td>${x.name}</td>
+          <td>${x.period_start} → ${x.period_end}</td>
+          <td>${x.contributions_count}</td>
+          <td><strong>${x.amount_mrtu} MRU</strong></td>
+          <td><span class="status-badge s-pending">معلق</span></td>
+          <td><button class="btn btn-sm" onclick="markPaid(${x.id})">تأكيد الدفع</button></td>
+        </tr>`).join('');
+
+    // Set download links with auth header workaround (open in new tab)
+    document.getElementById('btn-hdrp').href = `/api/admin/exports?format=hdrp&token=${token}`;
+  } catch (e) { console.error(e); }
+}
+
+async function createAnnotator() {
+  const name = document.getElementById('ann-name').value.trim();
+  const phone = document.getElementById('ann-phone').value.trim();
+  const pin = document.getElementById('ann-pin').value.trim();
+  const daily_target = parseInt(document.getElementById('ann-target').value) || 20;
+  const rate_per_contribution = parseFloat(document.getElementById('ann-rate').value) || 5;
+  const result = document.getElementById('create-result');
+
+  if (!name || !pin) { result.style.color = '#e57373'; result.textContent = 'الاسم ورمز الدخول مطلوبان'; return; }
+
+  try {
+    const r = await fetch('/api/admin/annotator', { method: 'POST', headers: H, body: JSON.stringify({ name, phone, pin, daily_target, rate_per_contribution }) });
+    const d = await r.json();
+    if (!r.ok) { result.style.color = '#e57373'; result.textContent = d.error; return; }
+    result.style.color = '#43a047';
+    result.textContent = `✓ تم إنشاء حساب ${name} بنجاح`;
+    document.getElementById('ann-name').value = '';
+    document.getElementById('ann-phone').value = '';
+    document.getElementById('ann-pin').value = '';
+    loadDashboard();
+  } catch { result.style.color = '#e57373'; result.textContent = 'خطأ في الإنشاء'; }
+}
+
+async function markPaid(id) {
+  try {
+    await fetch('/api/admin/payments/mark-paid', { method: 'POST', headers: H, body: JSON.stringify({ payment_ids: [id] }) });
+    loadDashboard();
+  } catch {}
+}
+
+async function importWhatsApp() {
+  const file = document.getElementById('wa-file').files[0];
+  if (!file) { alert('اختر ملفاً أولاً'); return; }
+  const fd = new FormData(); fd.append('file', file);
+  try {
+    const r = await fetch('/api/import/whatsapp', { method: 'POST', headers: { 'Authorization': `Bearer ${token}` }, body: fd });
+    const d = await r.json();
+    const el = document.getElementById('wa-result');
+    el.style.display = 'block';
+    el.textContent = `✓ تم استخراج ${d.extracted} إدخالاً (${d.hassaniya_detected} بمؤشرات حسانية)`;
+    loadDashboard();
+  } catch { alert('خطأ في الاستيراد'); }
+}
+
+async function importFacebook() {
+  const file = document.getElementById('fb-file').files[0];
+  if (!file) { alert('اختر ملفاً أولاً'); return; }
+  const fd = new FormData(); fd.append('file', file);
+  try {
+    const r = await fetch('/api/import/facebook', { method: 'POST', headers: { 'Authorization': `Bearer ${token}` }, body: fd });
+    const d = await r.json();
+    const el = document.getElementById('fb-result');
+    el.style.display = 'block';
+    el.textContent = `✓ تم استخراج ${d.extracted} إدخالاً (${d.hassaniya_detected} بمؤشرات حسانية)`;
+    loadDashboard();
+  } catch { alert('خطأ في الاستيراد'); }
+}
+
+function updateFileName(inputId, displayId) {
+  const f = document.getElementById(inputId).files[0];
+  if (f) document.getElementById(displayId).textContent = f.name;
+}
+
+function logout() {
+  localStorage.removeItem('sawtak_token');
+  localStorage.removeItem('sawtak_name');
+  localStorage.removeItem('sawtak_type');
+  window.location.href = '/annotator/login.html';
+}
+
+// Fix export download to include token as query param (only works for GET)
+// The backend needs to also accept token as query param for file downloads
+loadDashboard();
+</script>
+</body>
+</html>

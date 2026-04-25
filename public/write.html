@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>اكتب بالحسانية — صوتك</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  :root { --gold: #d4a843; --bg: #0d0d0d; --card: #1a1a1a; --text: #f0f0f0; --muted: #888; --green: #43a047; }
+  body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', Tahoma, Arial, sans-serif; min-height: 100vh; }
+  nav { display: flex; justify-content: space-between; align-items: center; padding: 1rem 2rem; border-bottom: 1px solid #222; }
+  .logo { color: var(--gold); font-size: 1.4rem; font-weight: bold; text-decoration: none; }
+  .card { background: var(--card); border-radius: 20px; padding: 2rem; max-width: 640px; margin: 2rem auto; width: 92%; }
+  .domain-badge { display: inline-block; background: #2a2a2a; border: 1px solid #444; border-radius: 20px; padding: 0.3rem 1rem; font-size: 0.85rem; color: var(--gold); margin-bottom: 1.2rem; }
+  .prompt-text { font-size: 1.5rem; text-align: center; line-height: 1.8; margin-bottom: 1.5rem; min-height: 60px; }
+  label { display: block; color: var(--muted); font-size: 0.9rem; margin-bottom: 0.5rem; }
+  textarea { width: 100%; background: #111; border: 1px solid #333; border-radius: 12px; padding: 1rem; color: var(--text); font-size: 1.1rem; resize: vertical; direction: rtl; font-family: inherit; min-height: 140px; line-height: 1.7; }
+  textarea:focus { outline: none; border-color: var(--gold); }
+  .char-count { text-align: left; color: var(--muted); font-size: 0.85rem; margin-top: 0.4rem; }
+  .char-count.ok { color: var(--green); }
+  .char-count.warn { color: #ff9800; }
+  .hassan-keys { display: flex; gap: 0.5rem; flex-wrap: wrap; margin: 1rem 0; }
+  .hkey { background: #2a2a2a; border: 1px solid #444; border-radius: 8px; padding: 0.5rem 1rem; cursor: pointer; color: var(--gold); font-size: 1.3rem; transition: all 0.15s; }
+  .hkey:hover { background: var(--gold); color: #000; }
+  .domain-sel { background: #111; border: 1px solid #333; border-radius: 10px; padding: 0.6rem 1rem; color: var(--text); width: 100%; font-size: 0.95rem; margin-bottom: 1rem; }
+  .btn { background: var(--gold); color: #000; border: none; border-radius: 10px; padding: 0.9rem 2rem; font-size: 1rem; font-weight: bold; cursor: pointer; width: 100%; margin-top: 0.8rem; transition: all 0.2s; }
+  .btn:hover { background: #e8c057; }
+  .btn:disabled { background: #333; color: #666; cursor: not-allowed; }
+  .btn-next { background: transparent; color: var(--muted); border: 1px solid #333; border-radius: 10px; padding: 0.7rem; cursor: pointer; width: 100%; margin-top: 0.5rem; font-size: 0.9rem; }
+  .btn-next:hover { border-color: var(--gold); color: var(--gold); }
+  .toast { position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%); background: var(--green); color: #fff; padding: 1rem 2rem; border-radius: 10px; display: none; z-index: 100; font-size: 1rem; }
+  h1 { text-align: center; color: var(--gold); margin: 1.5rem 0 0.5rem; font-size: 1.5rem; }
+</style>
+</head>
+<body>
+<nav>
+  <a href="/" class="logo">← صوتك</a>
+</nav>
+
+<h1>✍️ اكتب بالحسانية</h1>
+
+<div class="card">
+  <div class="domain-badge" id="domain-badge">...</div>
+  <div class="prompt-text" id="prompt-text">...</div>
+
+  <label>الحروف الخاصة بالحسانية:</label>
+  <div class="hassan-keys">
+    <button class="hkey" onclick="insertChar('گ')">گ</button>
+    <button class="hkey" onclick="insertChar('ڤ')">ڤ</button>
+    <button class="hkey" onclick="insertChar('ژ')">ژ</button>
+    <button class="hkey" onclick="insertChar('واش ')">واش</button>
+    <button class="hkey" onclick="insertChar('شكون ')">شكون</button>
+    <button class="hkey" onclick="insertChar('كيفاش ')">كيفاش</button>
+    <button class="hkey" onclick="insertChar('مزيان ')">مزيان</button>
+  </div>
+
+  <label>إجابتك بالحسانية:</label>
+  <textarea id="answer" placeholder="اكتب هنا بالحسانية..." oninput="updateCount()"></textarea>
+  <div class="char-count" id="char-count">0 / 500 — أدخل 10 أحرف على الأقل</div>
+
+  <label style="margin-top:1rem">المجال:</label>
+  <select class="domain-sel" id="domain-sel">
+    <option value="daily_life">الحياة اليومية</option>
+    <option value="market">السوق</option>
+    <option value="culture">الثقافة</option>
+    <option value="religion">الدين</option>
+    <option value="technology">التقنية</option>
+  </select>
+
+  <button class="btn" id="submit-btn" onclick="submitText()" disabled>إرسال ✓</button>
+  <button class="btn-next" onclick="nextPrompt()">السؤال التالي ←</button>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+let currentPrompt = null;
+const DOMAIN_LABELS = { daily_life:'الحياة اليومية', market:'السوق', culture:'الثقافة', religion:'الدين', technology:'التقنية', general:'عام' };
+
+async function loadPrompt() {
+  try {
+    const r = await fetch('/api/prompts/random');
+    currentPrompt = await r.json();
+    document.getElementById('prompt-text').textContent = currentPrompt.arabic_text;
+    document.getElementById('domain-badge').textContent = DOMAIN_LABELS[currentPrompt.domain] || currentPrompt.domain;
+    const sel = document.getElementById('domain-sel');
+    if (currentPrompt.domain) sel.value = currentPrompt.domain;
+  } catch {
+    document.getElementById('prompt-text').textContent = 'تكلم بالحسانية بشكل حر';
+  }
+}
+
+function updateCount() {
+  const len = document.getElementById('answer').value.trim().length;
+  const el = document.getElementById('char-count');
+  el.textContent = `${len} / 500`;
+  if (len < 10) { el.className = 'char-count'; el.textContent += ' — أدخل 10 أحرف على الأقل'; }
+  else if (len > 450) { el.className = 'char-count warn'; }
+  else { el.className = 'char-count ok'; }
+  document.getElementById('submit-btn').disabled = len < 10 || len > 500;
+}
+
+function insertChar(c) {
+  const ta = document.getElementById('answer');
+  const s = ta.selectionStart;
+  ta.value = ta.value.slice(0, s) + c + ta.value.slice(ta.selectionEnd);
+  ta.selectionStart = ta.selectionEnd = s + c.length;
+  ta.focus();
+  updateCount();
+}
+
+async function submitText() {
+  const text = document.getElementById('answer').value.trim();
+  const domain = document.getElementById('domain-sel').value;
+  if (text.length < 10) return;
+
+  try {
+    document.getElementById('submit-btn').disabled = true;
+    document.getElementById('submit-btn').textContent = 'جارٍ الإرسال...';
+    await fetch('/api/contribute/text', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text, domain, prompt_text: currentPrompt?.arabic_text }),
+    });
+    showToast('شكراً على مساهمتك! 🎉');
+    document.getElementById('answer').value = '';
+    updateCount();
+    setTimeout(() => loadPrompt(), 1500);
+  } catch {
+    showToast('خطأ في الإرسال، حاول مجدداً');
+    document.getElementById('submit-btn').disabled = false;
+    document.getElementById('submit-btn').textContent = 'إرسال ✓';
+  }
+}
+
+function nextPrompt() { document.getElementById('answer').value = ''; updateCount(); loadPrompt(); }
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.style.display = 'block';
+  setTimeout(() => { t.style.display = 'none'; document.getElementById('submit-btn').textContent = 'إرسال ✓'; }, 2000);
+}
+
+loadPrompt();
+</script>
+</body>
+</html>

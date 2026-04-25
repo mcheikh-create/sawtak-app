@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>دخول المُدوِّنين — صوتك</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  :root { --gold: #d4a843; --bg: #0d0d0d; --card: #1a1a1a; --text: #f0f0f0; --muted: #888; --red: #e53935; }
+  body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', Tahoma, Arial, sans-serif; min-height: 100vh; display: flex; align-items: center; justify-content: center; }
+  .login-box { background: var(--card); border-radius: 20px; padding: 3rem 2.5rem; width: 90%; max-width: 420px; text-align: center; }
+  .logo { font-size: 2.5rem; color: var(--gold); font-weight: bold; margin-bottom: 0.5rem; }
+  .subtitle { color: var(--muted); font-size: 1rem; margin-bottom: 2rem; }
+  label { display: block; text-align: right; color: var(--muted); font-size: 0.9rem; margin-bottom: 0.4rem; }
+  input { width: 100%; background: #111; border: 1px solid #333; border-radius: 10px; padding: 0.8rem 1rem; color: var(--text); font-size: 1rem; margin-bottom: 1.2rem; direction: ltr; text-align: center; }
+  input:focus { outline: none; border-color: var(--gold); }
+  .pin-input { font-size: 2rem; letter-spacing: 1rem; font-weight: bold; }
+  .btn { background: var(--gold); color: #000; border: none; border-radius: 10px; padding: 0.9rem 2rem; font-size: 1rem; font-weight: bold; cursor: pointer; width: 100%; transition: all 0.2s; }
+  .btn:hover { background: #e8c057; }
+  .error { color: var(--red); font-size: 0.9rem; margin: 0.5rem 0; min-height: 1.2rem; }
+  .back { display: block; margin-top: 1.5rem; color: var(--muted); text-decoration: none; font-size: 0.9rem; }
+  .back:hover { color: var(--gold); }
+</style>
+</head>
+<body>
+<div class="login-box">
+  <div class="logo">صوتك</div>
+  <div class="subtitle">لوحة عمل المُدوِّنين</div>
+
+  <label>الاسم أو رقم الهاتف</label>
+  <input type="text" id="identifier" placeholder="اسمك أو هاتفك" autocomplete="off">
+
+  <label>رمز الدخول (PIN)</label>
+  <input type="password" id="pin" class="pin-input" maxlength="4" placeholder="••••" oninput="clearError()" onkeydown="if(event.key==='Enter')login()">
+
+  <div class="error" id="error-msg"></div>
+  <button class="btn" onclick="login()">دخول</button>
+  <a href="/" class="back">← العودة للرئيسية</a>
+</div>
+
+<script>
+function clearError() { document.getElementById('error-msg').textContent = ''; }
+
+async function login() {
+  const identifier = document.getElementById('identifier').value.trim();
+  const pin = document.getElementById('pin').value.trim();
+  if (!identifier || !pin) { document.getElementById('error-msg').textContent = 'أدخل الاسم ورمز الدخول'; return; }
+
+  try {
+    const r = await fetch('/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ identifier, pin }),
+    });
+    const data = await r.json();
+    if (!r.ok) { document.getElementById('error-msg').textContent = data.error || 'رمز الدخول خاطئ'; return; }
+
+    localStorage.setItem('sawtak_token', data.token);
+    localStorage.setItem('sawtak_name', data.name);
+    localStorage.setItem('sawtak_type', data.type);
+
+    if (data.type === 'admin') {
+      window.location.href = '/admin/dashboard.html';
+    } else {
+      window.location.href = '/annotator/dashboard.html';
+    }
+  } catch {
+    document.getElementById('error-msg').textContent = 'خطأ في الاتصال';
+  }
+}
+
+// Auto-redirect if already logged in
+const token = localStorage.getItem('sawtak_token');
+const type = localStorage.getItem('sawtak_type');
+if (token) {
+  if (type === 'admin') window.location.href = '/admin/dashboard.html';
+  else window.location.href = '/annotator/dashboard.html';
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,162 @@
+[
+  {
+    "id": "STORY-001",
+    "arabic": "احكيلنا عن العرس الموريتاني التقليدي. كيف كانت الأعراس قديماً؟ شنو هي العادات اللي كانو يعملوها؟",
+    "domain": "culture",
+    "difficulty": "medium",
+    "expected_words": 100,
+    "example_opener": "فالأعراس قديماً كاينين عادات..."
+  },
+  {
+    "id": "STORY-002",
+    "arabic": "وصف يوم من أيام الصيادين فمدينة نواذيبو. شنو هو البرنامج ديالهم من الصباح للعشية؟",
+    "domain": "fishing",
+    "difficulty": "medium",
+    "expected_words": 100,
+    "example_opener": "الصباح باكر الصيادين يخرجو..."
+  },
+  {
+    "id": "STORY-003",
+    "arabic": "حكاية مع الجمال فالصحراء. كيف كانت الترحال مع الجمال؟ صف العلاقة بين البدو والجمل.",
+    "domain": "desert",
+    "difficulty": "hard",
+    "expected_words": 120,
+    "example_opener": "الجمل هو سفينة الصحراء و..."
+  },
+  {
+    "id": "STORY-004",
+    "arabic": "وصف طبخة موريتانية تقليدية — كيف كاينة تتحضر؟ شنو المكونات ديالها؟",
+    "domain": "food",
+    "difficulty": "easy",
+    "expected_words": 80,
+    "example_opener": "اليوم ح نوصف لكم كيف كاينة تتحضر..."
+  },
+  {
+    "id": "STORY-005",
+    "arabic": "شنو كاين داير فشهر رمضان عندنا فموريتانيا؟ العادات الخاصة، الفطور، السحور، والجو الرمضاني.",
+    "domain": "religion",
+    "difficulty": "medium",
+    "expected_words": 100,
+    "example_opener": "فشهر رمضان عندنا عادات..."
+  },
+  {
+    "id": "STORY-006",
+    "arabic": "صف الآلات الموسيقية التقليدية الموريتانية: التيدينيت والآردين. كيف كاينة تتعزف وشنو الأحوال اللي كاينة تتعزف فيها؟",
+    "domain": "culture",
+    "difficulty": "hard",
+    "expected_words": 100,
+    "example_opener": "التيدينيت هي آلة وترية..."
+  },
+  {
+    "id": "STORY-007",
+    "arabic": "احكيلنا على مدينة شنقيطي القديمة. شنو اللي تعرف عليها؟ ليش هي مهمة فالتاريخ الموريتاني؟",
+    "domain": "culture",
+    "difficulty": "medium",
+    "expected_words": 100,
+    "example_opener": "شنقيطي هي مدينة قديمة..."
+  },
+  {
+    "id": "STORY-008",
+    "arabic": "وصف ساحل المحيط الأطلسي فموريتانيا. شنو كاين فيه من مناظر وحياة بحرية؟",
+    "domain": "nature",
+    "difficulty": "easy",
+    "expected_words": 80,
+    "example_opener": "ساحل المحيط الأطلسي عندنا..."
+  },
+  {
+    "id": "STORY-009",
+    "arabic": "الأعشاب الطبية التقليدية فموريتانيا. كيف كاينة تستعمل وما هي الأمراض اللي كاينة تعالجها؟",
+    "domain": "culture",
+    "difficulty": "hard",
+    "expected_words": 120,
+    "example_opener": "فالصحراء عندنا أعشاب طبية..."
+  },
+  {
+    "id": "STORY-010",
+    "arabic": "الألعاب اللي كنا نلعبوها فالصغر فالقرى الموريتانية. صف لعبة وازي كاينة تلعب؟",
+    "domain": "family",
+    "difficulty": "easy",
+    "expected_words": 70,
+    "example_opener": "كنا صغار نلعبو..."
+  },
+  {
+    "id": "STORY-011",
+    "arabic": "قطار الحديد الموريتاني — أطول قطار فالعالم. ركبتي فيه قبل؟ صف التجربة.",
+    "domain": "travel",
+    "difficulty": "medium",
+    "expected_words": 100,
+    "example_opener": "قطار ازويرات هو أطول قطار..."
+  },
+  {
+    "id": "STORY-012",
+    "arabic": "وصف طقوس الشاي الموريتاني — الثلاث أكواب. شنو معنى كل كوب؟ وازي كاينة تتحضر؟",
+    "domain": "culture",
+    "difficulty": "easy",
+    "expected_words": 80,
+    "example_opener": "الشاي الموريتاني عندو طقوس..."
+  },
+  {
+    "id": "STORY-013",
+    "arabic": "وصف الملابس التقليدية الموريتانية: الدراعة، اللمّة، السروال، والمنديل. شنو الفرق بين لباس الرجال والنساء؟",
+    "domain": "culture",
+    "difficulty": "easy",
+    "expected_words": 80,
+    "example_opener": "اللباس التقليدي عندنا..."
+  },
+  {
+    "id": "STORY-014",
+    "arabic": "وصف يوم من أيام السوق فانواكشوط. شنو اللي كاين فيه؟ الأصوات، الروائح، الناس؟",
+    "domain": "culture",
+    "difficulty": "medium",
+    "expected_words": 100,
+    "example_opener": "السوق فانواكشوط صباح..."
+  },
+  {
+    "id": "STORY-015",
+    "arabic": "حكاية من حكايات الجدات قديماً. اذكر حكاية سمعتها من الجدة أو الجد وانت صغير.",
+    "domain": "family",
+    "difficulty": "hard",
+    "expected_words": 120,
+    "example_opener": "جدتي كانت تحكيلنا..."
+  },
+  {
+    "id": "STORY-016",
+    "arabic": "وصف مدينة ولاتة القديمة وعلمائها. ليش كانت مركز علمي مهم فتاريخ المنطقة؟",
+    "domain": "culture",
+    "difficulty": "hard",
+    "expected_words": 120,
+    "example_opener": "ولاتة مدينة من المدن..."
+  },
+  {
+    "id": "STORY-017",
+    "arabic": "وصف حياة الرعي والترحال. ازي كاينة تعيش العايلة فالصحراء؟ الخيمة، الأكل، الأغنام والجمال.",
+    "domain": "desert",
+    "difficulty": "hard",
+    "expected_words": 120,
+    "example_opener": "حياة الترحال فالصحراء..."
+  },
+  {
+    "id": "STORY-018",
+    "arabic": "وصف صناعة الحرف التقليدية فموريتانيا: النسيج، الجلود، الحلي الفضية. شنو كاينة تصنع وازي؟",
+    "domain": "culture",
+    "difficulty": "medium",
+    "expected_words": 100,
+    "example_opener": "الحرف التقليدية عندنا..."
+  },
+  {
+    "id": "STORY-019",
+    "arabic": "يوم عادي فحياتك. صف شنو كاين داير من الصباح للمساء — الشغل، العايلة، الأكل.",
+    "domain": "family",
+    "difficulty": "easy",
+    "expected_words": 70,
+    "example_opener": "الصباح نقوم ونعمل..."
+  },
+  {
+    "id": "STORY-020",
+    "arabic": "وصف الأطباق الموريتانية الشعبية: الكسرة، الأرز بالخضرة، مروبيه، الحريرة. كيف والدتك كاينة تطيبها؟",
+    "domain": "food",
+    "difficulty": "medium",
+    "expected_words": 100,
+    "example_opener": "الأكل الموريتاني عندو نكهة..."
+  }
+]

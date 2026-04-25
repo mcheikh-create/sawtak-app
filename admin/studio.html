@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>جلسات الاستوديو — صوتك</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  :root { --gold: #d4a843; --bg: #0d0d0d; --card: #1a1a1a; --text: #f0f0f0; --muted: #888; --green: #43a047; --red: #e53935; --orange: #fb8c00; }
+  body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', Tahoma, Arial, sans-serif; min-height: 100vh; }
+  header { display: flex; justify-content: space-between; align-items: center; padding: 1rem 2rem; border-bottom: 1px solid #222; }
+  .logo { color: var(--gold); font-size: 1.4rem; font-weight: bold; }
+  nav-links { display: flex; gap: 1.5rem; }
+  .nav-link { color: var(--muted); text-decoration: none; font-size: 0.9rem; }
+  .nav-link:hover, .nav-link.active { color: var(--gold); }
+  main { max-width: 1100px; margin: 0 auto; padding: 1.5rem; }
+  .page-title { color: var(--gold); font-size: 1.5rem; margin-bottom: 1.5rem; }
+  .section { background: var(--card); border-radius: 16px; padding: 1.5rem; margin-bottom: 1.5rem; }
+  h2 { color: var(--gold); margin-bottom: 1rem; font-size: 1.1rem; }
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem; }
+  .form-grid.three { grid-template-columns: 1fr 1fr 1fr; }
+  label { display: block; color: var(--muted); font-size: 0.82rem; margin-bottom: 0.3rem; }
+  input, select, textarea { width: 100%; background: #111; border: 1px solid #333; border-radius: 8px; padding: 0.6rem 1rem; color: var(--text); font-size: 0.9rem; font-family: inherit; }
+  textarea { resize: vertical; min-height: 60px; }
+  input:focus, select:focus, textarea:focus { outline: none; border-color: var(--gold); }
+  .btn { background: var(--gold); color: #000; border: none; border-radius: 8px; padding: 0.65rem 1.4rem; font-size: 0.9rem; font-weight: bold; cursor: pointer; transition: all 0.2s; display: inline-block; text-decoration: none; }
+  .btn:hover { background: #e8c057; }
+  .btn-outline { background: transparent; color: var(--gold); border: 1px solid var(--gold); }
+  .btn-outline:hover { background: rgba(212,168,67,0.1); }
+  .btn-sm { padding: 0.35rem 0.8rem; font-size: 0.78rem; }
+  .btn-green { background: var(--green); color: #fff; }
+  .btn-green:hover { background: #388e3c; }
+  .btn-red { background: transparent; color: var(--red); border: 1px solid var(--red); }
+  .btn-red:hover { background: rgba(229,57,53,0.1); }
+  .btn-orange { background: transparent; color: var(--orange); border: 1px solid var(--orange); }
+  .drop-zone { border: 2px dashed #444; border-radius: 14px; padding: 2.5rem; text-align: center; cursor: pointer; transition: border-color 0.2s; }
+  .drop-zone.drag-over { border-color: var(--gold); background: rgba(212,168,67,0.05); }
+  .drop-zone .icon { font-size: 2.5rem; }
+  .drop-zone p { color: var(--muted); margin-top: 0.5rem; font-size: 0.9rem; }
+  #file-list { margin-top: 1rem; }
+  .file-item { display: flex; justify-content: space-between; align-items: center; background: #111; border-radius: 8px; padding: 0.6rem 1rem; margin-bottom: 0.4rem; font-size: 0.88rem; }
+  .file-item .fname { color: var(--text); }
+  .file-item .fsize { color: var(--muted); font-size: 0.78rem; }
+  table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+  th { text-align: right; color: var(--muted); padding: 0.6rem; border-bottom: 1px solid #222; }
+  td { padding: 0.6rem; border-bottom: 1px solid #1a1a1a; vertical-align: middle; }
+  .badge { display: inline-block; padding: 0.2rem 0.6rem; border-radius: 20px; font-size: 0.75rem; }
+  .b-pending { background: #2a2a2a; color: var(--muted); }
+  .b-transcribed { background: rgba(251,140,0,0.2); color: var(--orange); }
+  .b-approved { background: rgba(67,160,71,0.2); color: var(--green); }
+  .b-rejected { background: rgba(229,57,53,0.2); color: var(--red); }
+  .b-manual { background: rgba(156,39,176,0.2); color: #ce93d8; }
+  .transcript-edit { width: 100%; background: #0a0a0a; border: 1px solid #333; border-radius: 6px; padding: 0.5rem; color: var(--text); font-size: 0.88rem; resize: vertical; direction: rtl; }
+  .result-msg { padding: 0.7rem 1rem; border-radius: 8px; margin-top: 0.8rem; font-size: 0.9rem; display: none; }
+  .result-ok { background: rgba(67,160,71,0.15); color: var(--green); }
+  .result-err { background: rgba(229,57,53,0.15); color: #ef9a9a; }
+  .active-session-bar { background: rgba(212,168,67,0.1); border: 1px solid rgba(212,168,67,0.3); border-radius: 10px; padding: 0.7rem 1.2rem; margin-bottom: 1rem; display: none; font-size: 0.9rem; }
+  .active-session-bar span { color: var(--gold); font-weight: bold; }
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">صوتك — الاستوديو</div>
+  <div style="display:flex;gap:1.5rem;align-items:center">
+    <a href="/admin/dashboard.html" class="nav-link">← لوحة الإدارة</a>
+    <button class="btn btn-outline" style="padding:0.4rem 1rem;font-size:0.85rem" onclick="logout()">خروج</button>
+  </div>
+</header>
+
+<main>
+  <div class="page-title">🎙️ جلسات الاستوديو</div>
+
+  <!-- Active session indicator -->
+  <div class="active-session-bar" id="active-session-bar">
+    الجلسة النشطة: <span id="active-session-name">—</span> &nbsp;|&nbsp; المعرّف: <span id="active-session-id">—</span>
+    <button class="btn btn-sm btn-outline" style="margin-right:1rem" onclick="clearActiveSession()">إلغاء</button>
+  </div>
+
+  <!-- New Session -->
+  <div class="section">
+    <h2>جلسة تسجيل جديدة</h2>
+    <div class="form-grid">
+      <div><label>اسم المتحدث *</label><input type="text" id="s-name" placeholder="اسم المتحدث"></div>
+      <div><label>نوع الجلسة</label>
+        <select id="s-type">
+          <option value="phrases">جمل وعبارات</option>
+          <option value="prompts">إجابات على أسئلة</option>
+          <option value="stories">قصص وحكايات</option>
+          <option value="conversation">محادثة حرة</option>
+          <option value="proverbs">أمثال وحكم</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-grid three" style="margin-top:0.8rem">
+      <div><label>التاريخ</label><input type="date" id="s-date"></div>
+      <div><label>الميكروفون</label>
+        <select id="s-mic">
+          <option>Blue Yeti USB</option>
+          <option>Rode NT-USB</option>
+          <option>هاتف محمول</option>
+          <option>ميكروفون داخلي</option>
+          <option>أخرى</option>
+        </select>
+      </div>
+      <div><label>ملاحظات</label><input type="text" id="s-notes" placeholder="ملاحظات اختيارية"></div>
+    </div>
+    <div style="margin-top:1rem;display:flex;gap:0.8rem;align-items:center">
+      <button class="btn" onclick="createSession()">بدء الجلسة</button>
+      <div id="session-result" class="result-msg"></div>
+    </div>
+  </div>
+
+  <!-- Upload -->
+  <div class="section">
+    <h2>رفع الملفات الصوتية</h2>
+    <p style="color:var(--muted);font-size:0.85rem;margin-bottom:1rem">ادرج الملفات في الجلسة النشطة. إذا لم تبدأ جلسة، ادخل المعرّف يدوياً.</p>
+    <div style="display:flex;gap:0.8rem;margin-bottom:1rem;align-items:center">
+      <label style="margin:0;white-space:nowrap">معرّف الجلسة:</label>
+      <input type="number" id="upload-session-id" placeholder="مثال: 1" style="max-width:120px">
+    </div>
+    <div class="drop-zone" id="drop-zone" onclick="document.getElementById('audio-files').click()">
+      <div class="icon">📂</div>
+      <p>اسحب ملفات .wav / .mp3 / .webm هنا</p>
+      <p style="font-size:0.8rem">أو انقر للاستعراض</p>
+    </div>
+    <input type="file" id="audio-files" multiple accept=".wav,.mp3,.webm,.ogg,.m4a" style="display:none" onchange="showFileList()">
+    <div id="file-list"></div>
+    <button class="btn" id="upload-btn" onclick="uploadFiles()" style="margin-top:1rem;display:none">رفع الكل</button>
+    <div id="upload-result" class="result-msg"></div>
+  </div>
+
+  <!-- Session List -->
+  <div class="section">
+    <h2>قائمة الجلسات</h2>
+    <table>
+      <thead><tr><th>المتحدث</th><th>النوع</th><th>التاريخ</th><th>الملفات</th><th>المُعتمدة</th><th>الميك</th><th>إجراءات</th></tr></thead>
+      <tbody id="sessions-table"><tr><td colspan="7" style="color:var(--muted);text-align:center;padding:1.5rem">جارٍ التحميل...</td></tr></tbody>
+    </table>
+  </div>
+
+  <!-- Transcription Queue -->
+  <div class="section">
+    <h2>طابور النسخ</h2>
+    <div style="margin-bottom:1rem;display:flex;gap:0.8rem">
+      <button class="btn btn-outline btn-sm" onclick="loadQueue()">تحديث</button>
+    </div>
+    <table>
+      <thead><tr><th>الملف</th><th>المتحدث</th><th>المدة</th><th>الحالة</th><th>النص</th><th>إجراءات</th></tr></thead>
+      <tbody id="queue-table"><tr><td colspan="6" style="color:var(--muted);text-align:center;padding:1.5rem">جارٍ التحميل...</td></tr></tbody>
+    </table>
+  </div>
+</main>
+
+<script>
+const token = localStorage.getItem('sawtak_token');
+const type = localStorage.getItem('sawtak_type');
+if (!token || type !== 'admin') window.location.href = '/annotator/login.html';
+const H = { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' };
+
+let activeSessionId = localStorage.getItem('studio_session_id');
+let activeSessionName = localStorage.getItem('studio_session_name');
+
+function showActiveSession() {
+  if (activeSessionId) {
+    document.getElementById('active-session-bar').style.display = 'block';
+    document.getElementById('active-session-name').textContent = activeSessionName || '—';
+    document.getElementById('active-session-id').textContent = activeSessionId;
+    document.getElementById('upload-session-id').value = activeSessionId;
+  }
+}
+
+function clearActiveSession() {
+  activeSessionId = null; activeSessionName = null;
+  localStorage.removeItem('studio_session_id');
+  localStorage.removeItem('studio_session_name');
+  document.getElementById('active-session-bar').style.display = 'none';
+  document.getElementById('upload-session-id').value = '';
+}
+
+async function createSession() {
+  const name = document.getElementById('s-name').value.trim();
+  if (!name) { showMsg('session-result', 'اسم المتحدث مطلوب', false); return; }
+  const body = {
+    speaker_name: name,
+    session_type: document.getElementById('s-type').value,
+    date: document.getElementById('s-date').value || new Date().toISOString().slice(0, 10),
+    mic_used: document.getElementById('s-mic').value,
+    notes: document.getElementById('s-notes').value,
+  };
+  try {
+    const r = await fetch('/api/studio/session', { method: 'POST', headers: H, body: JSON.stringify(body) });
+    const d = await r.json();
+    if (!r.ok) { showMsg('session-result', d.error, false); return; }
+    activeSessionId = String(d.id);
+    activeSessionName = name;
+    localStorage.setItem('studio_session_id', activeSessionId);
+    localStorage.setItem('studio_session_name', activeSessionName);
+    showMsg('session-result', `✓ تم إنشاء الجلسة #${d.id} لـ ${name}`, true);
+    showActiveSession();
+    document.getElementById('s-name').value = '';
+    document.getElementById('s-notes').value = '';
+    loadSessions();
+  } catch { showMsg('session-result', 'خطأ في الإنشاء', false); }
+}
+
+function showFileList() {
+  const files = document.getElementById('audio-files').files;
+  const list = document.getElementById('file-list');
+  if (!files.length) { list.innerHTML = ''; document.getElementById('upload-btn').style.display = 'none'; return; }
+  list.innerHTML = Array.from(files).map(f => `
+    <div class="file-item">
+      <span class="fname">🎵 ${f.name}</span>
+      <span class="fsize">${(f.size/1024/1024).toFixed(2)} MB</span>
+    </div>`).join('');
+  document.getElementById('upload-btn').style.display = 'inline-block';
+}
+
+async function uploadFiles() {
+  const files = document.getElementById('audio-files').files;
+  const sessionId = document.getElementById('upload-session-id').value;
+  if (!files.length) return;
+  const fd = new FormData();
+  for (const f of files) fd.append('files', f);
+  if (sessionId) fd.append('session_id', sessionId);
+  try {
+    document.getElementById('upload-btn').textContent = 'جارٍ الرفع...';
+    document.getElementById('upload-btn').disabled = true;
+    const r = await fetch('/api/studio/upload', { method: 'POST', headers: { 'Authorization': `Bearer ${token}` }, body: fd });
+    const d = await r.json();
+    showMsg('upload-result', `✓ تم رفع ${d.uploaded} ملف`, true);
+    document.getElementById('file-list').innerHTML = '';
+    document.getElementById('audio-files').value = '';
+    document.getElementById('upload-btn').style.display = 'none';
+    loadSessions();
+    loadQueue();
+  } catch { showMsg('upload-result', 'خطأ في الرفع', false); }
+  finally { document.getElementById('upload-btn').textContent = 'رفع الكل'; document.getElementById('upload-btn').disabled = false; }
+}
+
+async function loadSessions() {
+  try {
+    const r = await fetch('/api/studio/sessions', { headers: { 'Authorization': `Bearer ${token}` } });
+    const sessions = await r.json();
+    const tbody = document.getElementById('sessions-table');
+    const TYPE_LABELS = { phrases:'عبارات', prompts:'أسئلة', stories:'قصص', conversation:'محادثة', proverbs:'أمثال' };
+    tbody.innerHTML = sessions.length === 0
+      ? '<tr><td colspan="7" style="color:var(--muted);text-align:center">لا توجد جلسات بعد</td></tr>'
+      : sessions.map(s => `<tr>
+          <td><strong>${s.speaker_name}</strong></td>
+          <td>${TYPE_LABELS[s.session_type] || s.session_type}</td>
+          <td style="direction:ltr">${s.date || '—'}</td>
+          <td>${s.file_count_actual || 0}</td>
+          <td><span style="color:var(--green)">${s.approved_count || 0}</span></td>
+          <td style="font-size:0.8rem;color:var(--muted)">${s.mic_used || '—'}</td>
+          <td>
+            <button class="btn btn-sm btn-outline" onclick="setActiveSession(${s.id},'${s.speaker_name.replace(/'/g,"\\'")}')">تحديد</button>
+          </td>
+        </tr>`).join('');
+  } catch {}
+}
+
+function setActiveSession(id, name) {
+  activeSessionId = String(id); activeSessionName = name;
+  localStorage.setItem('studio_session_id', activeSessionId);
+  localStorage.setItem('studio_session_name', activeSessionName);
+  showActiveSession();
+}
+
+async function loadQueue() {
+  try {
+    const r = await fetch('/api/studio/queue', { headers: { 'Authorization': `Bearer ${token}` } });
+    const files = await r.json();
+    const tbody = document.getElementById('queue-table');
+    if (!files.length) { tbody.innerHTML = '<tr><td colspan="6" style="color:var(--muted);text-align:center">الطابور فارغ ✓</td></tr>'; return; }
+    tbody.innerHTML = files.map(f => `
+      <tr id="row-${f.id}">
+        <td style="font-size:0.82rem;color:var(--muted)">${f.filename.slice(0,40)}</td>
+        <td>${f.speaker_name || '—'}</td>
+        <td>${f.duration_seconds ? f.duration_seconds + 'ث' : '—'}</td>
+        <td><span class="badge b-${f.transcription_status === 'needs-manual' ? 'manual' : f.transcription_status}">${statusLabel(f.transcription_status)}</span></td>
+        <td>
+          <textarea class="transcript-edit" id="tr-${f.id}" rows="2">${f.transcription || ''}</textarea>
+        </td>
+        <td>
+          <div style="display:flex;flex-direction:column;gap:0.4rem">
+            ${f.transcription_status === 'pending' || f.transcription_status === 'needs-manual'
+              ? `<button class="btn btn-sm btn-orange" onclick="transcribe(${f.id})">نسخ Whisper</button>` : ''}
+            <button class="btn btn-sm btn-green" onclick="approve(${f.id})">اعتماد ✓</button>
+            <button class="btn btn-sm btn-red" onclick="reject(${f.id})">رفض ✗</button>
+          </div>
+        </td>
+      </tr>`).join('');
+  } catch {}
+}
+
+function statusLabel(s) {
+  const m = { pending:'معلق', transcribed:'منسوخ', approved:'معتمد', rejected:'مرفوض', 'needs-manual':'يدوي' };
+  return m[s] || s;
+}
+
+async function transcribe(id) {
+  const btn = document.querySelector(`#row-${id} .btn-orange`);
+  if (btn) { btn.textContent = 'جارٍ...'; btn.disabled = true; }
+  try {
+    const r = await fetch(`/api/studio/transcribe/${id}`, { method: 'POST', headers: H });
+    const d = await r.json();
+    if (d.transcription) document.getElementById(`tr-${id}`).value = d.transcription;
+    else if (d.error) alert('Whisper: ' + d.error);
+    loadQueue();
+  } catch { if (btn) { btn.textContent = 'نسخ Whisper'; btn.disabled = false; } }
+}
+
+async function approve(id) {
+  const text = document.getElementById(`tr-${id}`)?.value;
+  await fetch(`/api/studio/approve/${id}`, { method: 'POST', headers: H, body: JSON.stringify({ transcription: text, quality_score: 80 }) });
+  loadQueue();
+}
+
+async function reject(id) {
+  await fetch(`/api/studio/reject/${id}`, { method: 'POST', headers: H });
+  document.getElementById(`row-${id}`)?.remove();
+}
+
+function showMsg(id, msg, ok) {
+  const el = document.getElementById(id);
+  el.textContent = msg;
+  el.className = `result-msg ${ok ? 'result-ok' : 'result-err'}`;
+  el.style.display = 'block';
+  if (ok) setTimeout(() => el.style.display = 'none', 3000);
+}
+
+// Drag & drop
+const dz = document.getElementById('drop-zone');
+dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('drag-over'); });
+dz.addEventListener('dragleave', () => dz.classList.remove('drag-over'));
+dz.addEventListener('drop', e => {
+  e.preventDefault(); dz.classList.remove('drag-over');
+  const dt = new DataTransfer();
+  Array.from(e.dataTransfer.files).forEach(f => dt.items.add(f));
+  document.getElementById('audio-files').files = dt.files;
+  showFileList();
+});
+
+// Init
+document.getElementById('s-date').value = new Date().toISOString().slice(0, 10);
+showActiveSession();
+loadSessions();
+loadQueue();
+
+function logout() {
+  localStorage.removeItem('sawtak_token');
+  localStorage.removeItem('sawtak_name');
+  localStorage.removeItem('sawtak_type');
+  window.location.href = '/annotator/login.html';
+}
+</script>
+</body>
+</html>

@@ -63,6 +63,33 @@ db.exec(`
     FOREIGN KEY (contributor_id) REFERENCES contributors(id)
   );
 
+  CREATE TABLE IF NOT EXISTS studio_sessions (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    speaker_name TEXT NOT NULL,
+    session_type TEXT DEFAULT 'phrases',
+    date TEXT,
+    duration_minutes INTEGER DEFAULT 0,
+    file_count INTEGER DEFAULT 0,
+    mic_used TEXT DEFAULT 'Blue Yeti USB',
+    notes TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  );
+
+  CREATE TABLE IF NOT EXISTS studio_files (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    session_id INTEGER,
+    filename TEXT,
+    duration_seconds INTEGER,
+    prompt_used TEXT,
+    transcription TEXT,
+    transcription_status TEXT DEFAULT 'pending',
+    quality_score INTEGER DEFAULT 0,
+    approved_by TEXT,
+    approved_at DATETIME,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (session_id) REFERENCES studio_sessions(id)
+  );
+
   CREATE TABLE IF NOT EXISTS payments (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     annotator_id INTEGER NOT NULL,

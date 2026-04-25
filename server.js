@@ -26,6 +26,7 @@ app.use('/api/auth', require('./routes/auth'));
 app.use('/api/annotator', authenticate, requireAnnotator, require('./routes/annotator'));
 app.use('/api/admin', authenticate, requireAdmin, require('./routes/admin'));
 app.use('/api/import', authenticate, requireAdmin, require('./routes/imports'));
+app.use('/api/studio', authenticate, requireAdmin, require('./routes/studio'));
 
 // Root redirect
 app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
